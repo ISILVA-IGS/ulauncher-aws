@@ -4,6 +4,9 @@ from ulauncher.api.shared.event import KeywordQueryEvent
 from ulauncher.api.shared.item.ExtensionResultItem import ExtensionResultItem
 from ulauncher.api.shared.action.RenderResultListAction import RenderResultListAction
 from ulauncher.api.shared.action.OpenUrlAction import OpenUrlAction
+import boto3
+from botocore.config import Config
+client = boto3.client('dynamodb', config=Config(region_name='sa-east-1'))
 
 
 class GnomeSessionExtension(Extension):
@@ -14,17 +17,14 @@ class GnomeSessionExtension(Extension):
 
 class KeywordQueryEventListener(EventListener):
     def on_event(self, event, extension):
+
+        response = client.list_tables(
+            ExclusiveStartTableName='Pix',
+            Limit=10
+        )
+
         items = []
-        options = [
-            'ec2', 'ecs', 'rds', 's3', 'elasticbeanstalk', 'elasticache', 'cloudwatch', 'cloudformation', 'vpc', 'iam', 'ecr', 'eks', 'lambda', 'dynamodb',
-            'managementconsole', 'management', 'console',
-            'support', 'ticket', 'helpdesk', 'help',
-            'billing', 'budget', 'costs',
-            'pricingcalculator', 'pricing', 'price', 'prices', 'calculate', 'calculator',
-            'compare', 'instancecomparison', 'comparison',
-            'route53', 'dns', 'sqs', 'sns', 'ses', 'elasticsearch', 'kms', 'cloudfront', 'api', 'gateway',
-            'cloudtrail', 'secret', 'systemsmanager'
-        ]
+        options = response['TableNames']
         my_list = event.query.split(" ")
         if len(my_list) == 1:
             items.append(get_ec2_item())
